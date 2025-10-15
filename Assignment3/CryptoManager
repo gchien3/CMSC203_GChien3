@@ -1,0 +1,314 @@
+/**
+ * This is a utility class that encrypts and decrypts a phrase using three
+ * different approaches.
+ * 
+ * The first approach is called the Vigenere Cipher.Vigenere encryption is a
+ * method of encrypting alphabetic text based on the letters of a keyword.
+ * 
+ * The second approach is Playfair Cipher. It encrypts two letters (a digraph)
+ * at a time instead of just one.
+ * 
+ * The third approach is Caesar Cipher. It is a simple replacement cypher.
+ * 
+ * @author Huseyin Aygun
+ * @version 8/3/2025
+ */
+/*
+ * Class: CMSC203 CRN 22172
+ * Instructor: Farnaz Eivazi
+ * Description: Has encrypter and decrypter for Vigenere, Caesar, and Playfair Cipher
+ * Due: 10/14/2025
+ * Platform/compiler: Eclipse
+ * I pledge that I have completed the programming  assignment independently. 
+*  I have not copied the code from a student or any source. 
+*  I have not given my code to any student.
+*  Print your Name here: Grant Chien
+*/
+
+public class CryptoManager {
+
+	private static final char LOWER_RANGE = ' ';
+	private static final char UPPER_RANGE = '_';
+	private static final int RANGE = UPPER_RANGE - LOWER_RANGE + 1;
+	// Use 64-character matrix (8X8) for Playfair cipher
+	private static final String ALPHABET64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 !\"#$%&'()*+,-./:;<=>?@[\\]^_";
+
+	public static boolean isStringInBounds(String plainText) {
+		for (int i = 0; i < plainText.length(); i++) {
+			if (!(plainText.charAt(i) >= LOWER_RANGE
+					&& plainText.charAt(i) <= UPPER_RANGE)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Vigenere Cipher is a method of encrypting alphabetic text based on the
+	 * letters of a keyword. It works as below: Choose a keyword (e.g., KEY). Repeat
+	 * the keyword to match the length of the plaintext. Each letter in the
+	 * plaintext is shifted by the position of the corresponding letter in the
+	 * keyword (A = 0, B = 1, ..., Z = 25).
+	 */
+
+	// Vigenere Encryption
+	public static String vigenereEncryption(String plainText,
+			String key) {
+		if (!isStringInBounds(plainText) || !isStringInBounds(key)) {
+			return "The selected string is not in bounds, Try again.";
+		}
+
+		String encrypted = "";
+		for (int i = 0; i < plainText.length(); i++) {
+			int shift = key.charAt(i % key.length()) - LOWER_RANGE;
+			char c = (char) ((plainText.charAt(i) - LOWER_RANGE
+					+ shift) % RANGE + LOWER_RANGE);
+			encrypted += c;
+		}
+
+		return encrypted;
+	}
+
+	// Vigenere Decryption
+	public static String vigenereDecryption(String encryptedText,
+			String key) {
+		if (!isStringInBounds(encryptedText)
+				|| !isStringInBounds(key)) {
+			return "The selected string is not in bounds, Try again.";
+		}
+
+		String decrypted = "";
+		for (int i = 0; i < encryptedText.length(); i++) {
+			int shift = key.charAt(i % key.length()) - LOWER_RANGE;
+			char c = (char) ((encryptedText.charAt(i) - LOWER_RANGE
+					- shift + RANGE) % RANGE + LOWER_RANGE);
+			decrypted += c;
+		}
+
+		return decrypted;
+	}
+
+	/**
+	 * Playfair Cipher encrypts two letters at a time instead of just one. It works
+	 * as follows: A matrix (8X8 in our case) is built using a keyword Plaintext is
+	 * split into letter pairs (e.g., ME ET YO UR). Encryption rules depend on the
+	 * positions of the letters in the matrix: Same row: replace each letter with
+	 * the one to its right. Same column: replace each with the one below.
+	 * Rectangle: replace each letter with the one in its own row but in the column
+	 * of the other letter in the pair.
+	 */
+
+	// Playfair Encryption
+	public static String playfairEncryption(String plainText,
+			String key) {
+		if (!isStringInBounds(plainText) || !isStringInBounds(key)) {
+			return "The selected string is not in bounds, Try again.";
+		}
+
+		// Building 8x8 matrix
+		boolean[] used = new boolean[RANGE];
+		char[][] matrix = new char[8][8];
+		String fullKey = "";
+
+		// Mapping key word to matrix
+		for (int i = 0; i < key.length(); i++) {
+			char c = key.charAt(i);
+			if (!used[c - LOWER_RANGE]) {
+				fullKey += c;
+				used[c - LOWER_RANGE] = true;
+			}
+		}
+
+		// Mapping remaining letters to matrix
+		for (int i = 0; i < ALPHABET64.length(); i++) {
+			char c = ALPHABET64.charAt(i);
+			if (!used[c - LOWER_RANGE]) {
+				fullKey += c;
+				used[c - LOWER_RANGE] = true;
+			}
+		}
+
+		// Filling in matrix
+		int index = 0;
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
+				matrix[i][j] = fullKey.charAt(index++);
+			}
+		}
+
+		// Check if repeating characters
+		String prepped = "";
+		for (int i = 0; i < plainText.length(); i++) {
+			char a = plainText.charAt(i);
+			char b = (i + 1 < plainText.length())
+					? plainText.charAt(i + 1)
+					: 'X';
+
+			if (a == b) {
+				prepped += a;
+				prepped += 'X';
+			} else {
+				prepped += a;
+				prepped += b;
+				i++;
+			}
+		}
+
+		// Add extra X to single character
+		if (prepped.length() < 2) {
+			prepped += 'X';
+		}
+
+		// Encrypting
+		String encrypted = "";
+		for (int i = 0; i < prepped.length(); i += 2) {
+			char a = prepped.charAt(i);
+			char b = prepped.charAt(i + 1);
+			int rowA = 0, colA = 0, rowB = 0, colB = 0;
+
+			// Finding position of characters
+			for (int j = 0; j < 8; j++) {
+				for (int k = 0; k < 8; k++) {
+
+					if (matrix[j][k] == a) {
+						rowA = j;
+						colA = k;
+					}
+
+					if (matrix[j][k] == b) {
+						rowB = j;
+						colB = k;
+					}
+				}
+			}
+
+			// Changing/Encrypting Message
+			if (rowA == rowB) {
+				// Same row change
+				encrypted += matrix[rowA][(colA + 1) % 8];
+				encrypted += matrix[rowB][(colB + 1) % 8];
+			} else if (colA == colB) {
+				// Same column change
+				encrypted += matrix[(rowA + 1) % 8][colA];
+				encrypted += matrix[(rowB + 1) % 8][colB];
+			} else {
+				// Rectangle change
+				encrypted += matrix[rowA][colB];
+				encrypted += matrix[rowB][colA];
+			}
+		}
+
+		return encrypted;
+	}
+
+	// Playfair Decryption
+	public static String playfairDecryption(String encryptedText,
+			String key) {
+		if (!isStringInBounds(encryptedText)
+				|| !isStringInBounds(key)) {
+			return "The selected string is not in bounds, Try again.";
+		}
+
+		// Building 8x8 matrix
+		boolean[] used = new boolean[RANGE];
+		char[][] matrix = new char[8][8];
+		String fullKey = "";
+
+		for (int i = 0; i < key.length(); i++) {
+			char c = key.charAt(i);
+			if (!used[c - LOWER_RANGE]) {
+				fullKey += c;
+				used[c - LOWER_RANGE] = true;
+			}
+		}
+
+		for (int i = 0; i < ALPHABET64.length(); i++) {
+			char c = ALPHABET64.charAt(i);
+			if (!used[c - LOWER_RANGE]) {
+				fullKey += c;
+				used[c - LOWER_RANGE] = true;
+			}
+		}
+
+		int index = 0;
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
+				matrix[i][j] = fullKey.charAt(index++);
+			}
+		}
+
+		String decrypted = "";
+		for (int i = 0; i < encryptedText.length(); i += 2) {
+			char a = encryptedText.charAt(i);
+			char b = encryptedText.charAt(i + 1);
+			int rowA = 0, colA = 0, rowB = 0, colB = 0;
+
+			for (int j = 0; j < 8; j++) {
+				for (int k = 0; k < 8; k++) {
+					if (matrix[j][k] == a) {
+						rowA = j;
+						colA = k;
+					}
+					if (matrix[j][k] == b) {
+						rowB = j;
+						colB = k;
+					}
+				}
+			}
+
+			if (rowA == rowB) {
+				decrypted += matrix[rowA][(colA + 7) % 8];
+				decrypted += matrix[rowB][(colB + 7) % 8];
+			} else if (colA == colB) {
+				decrypted += matrix[(rowA + 7) % 8][colA];
+				decrypted += matrix[(rowB + 7) % 8][colB];
+			} else {
+				decrypted += matrix[rowA][colB];
+				decrypted += matrix[rowB][colA];
+			}
+		}
+
+		return decrypted;
+	}
+
+	/**
+	 * Caesar Cipher is a simple substitution cipher that replaces each letter in a
+	 * message with a letter some fixed number of positions down the alphabet. For
+	 * example, with a shift of 3, 'A' would become 'D', 'B' would become 'E', and
+	 * so on.
+	 */
+
+	// Caesar Encryption
+	public static String caesarEncryption(String plainText, int key) {
+		if (!isStringInBounds(plainText)) {
+			return "The selected string is not in bounds, Try Again.";
+		}
+		String encrypted = "";
+		for (int i = 0; i < plainText.length(); i++) {
+			char c = plainText.charAt(i);
+			char enc = (char) ((c - LOWER_RANGE + key) % RANGE
+					+ LOWER_RANGE);
+			encrypted += enc;
+		}
+
+		return encrypted;
+	}
+
+	// Caesar Decryption
+	public static String caesarDecryption(String encryptedText,
+			int key) {
+		if (!isStringInBounds(encryptedText)) {
+			return "The selected string is not in bounds, Try Again.";
+		}
+		String decrypted = "";
+		for (int i = 0; i < encryptedText.length(); i++) {
+			char c = encryptedText.charAt(i);
+			char dec = (char) ((c - LOWER_RANGE - key + RANGE) % RANGE
+					+ LOWER_RANGE);
+			decrypted += dec;
+		}
+
+		return decrypted;
+	}
+
+}
