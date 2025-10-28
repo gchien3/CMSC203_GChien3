@@ -1,0 +1,111 @@
+import javax.print.attribute.standard.MediaSize.Other;
+/*
+ * Class: CMSC203 CRN 22172
+ * Instructor: Farnaz Eivazi
+ * Description: Create plot with a x and y coordinate and width and depth
+ * Due: 10/27/2025
+ * Platform/compiler: Eclipse
+ * I pledge that I have completed the programming 
+assignment independently. 
+ * I have not copied the code from a student or any source. 
+ * I have not given my code to any student.
+ * Print your Name here: Grant Chien
+*/
+public class Plot extends Object{
+	// Fields
+	private int x, y, width, depth;
+	
+	// Default no-arg constructor
+	public Plot() {
+		x = 0; 
+		y = 0;
+		width = 1;
+		depth = 1;
+	}
+
+	// Parameterized constructor
+	public Plot(int x, int y, int width, int depth) {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.depth = depth;
+	}
+
+	// Copy constructor
+	public Plot(Plot otherPlot) {
+        this.x = otherPlot.x;
+        this.y = otherPlot.y;
+        this.width = otherPlot.width;
+        this.depth = otherPlot.depth;
+    }
+
+	// Setters/Getters
+	public int getX() {
+		return x;
+	}
+
+	public void setX(int x) {
+		this.x = x;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	public void setY(int y) {
+		this.y = y;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	public int getDepth() {
+		return depth;
+	}
+
+	public void setDepth(int depth) {
+		this.depth = depth;
+	}
+
+	// Other methods
+	public boolean overlaps(Plot plot) {
+		if (plot == null) {
+			return false;
+		}
+		
+		if(this.x + this.width <= plot.x || 
+				plot.x + plot.width <= this.x ||
+				this.y + this.depth <= plot.y ||
+				plot.y + plot.depth <= this.y) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean encompasses(Plot plot) {
+		if (plot == null) {
+			return false;
+		}
+		
+		boolean leftEdge = plot.x <= this.x;
+		boolean topEdge = plot.y <= this.y;
+		boolean rightEdge = (plot.x + plot.width) <= (this.x + this.width);
+		boolean bottomEdge = (plot.y + plot.depth) <= (this.y + plot.depth);
+		
+		return leftEdge && topEdge && rightEdge && bottomEdge;
+	}
+	
+	// To string method
+	@Override
+	public String toString() {
+		return x + "," + y + "," + width + "," + depth;
+	}
+	
+
+}
